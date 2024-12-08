@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if medicamento %}Editar{% else %}Crear{% endif %} Medicamento</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group mb-3">
+                    <label>Nombre</label>
+                    {{ form.nombre }}
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Descripción</label>
+                    {{ form.descripcion }}
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Componente Principal</label>
+                    {{ form.componente_principal }}
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Contraindicaciones</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="contraindicaciones_display" 
+                               readonly value="{{ form.contraindicaciones.value|default:'' }}">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" 
+                                data-bs-target="#contraindicacionesModal">
+                            Seleccionar Contraindicaciones
+                        </button>
+                    </div>
+                    {{ form.contraindicaciones }}
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    {% if medicamento %}Guardar Cambios{% else %}Crear Medicamento{% endif %}
+                </button>
+                <a href="{% url 'lista_medicamentos' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Contraindicaciones -->
+<div class="modal fade" id="contraindicacionesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Contraindicaciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    {% for contraindicacion in contraindicaciones_comunes %}
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input contraindicacion-checkbox" 
+                                   type="checkbox" value="{{ contraindicacion }}">
+                            <label class="form-check-label">{{ contraindicacion }}</label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="actualizarContraindicaciones()">
+                    Guardar Selección
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Obtener las contraindicaciones actuales del medicamento
+    const contraindicacionesActuales = document.getElementById('id_contraindicaciones').value
+        .split(',')
+        .map(c => c.trim())
+        .filter(c => c); // Eliminar elementos vacíos
+
+    // Marcar los checkboxes correspondientes
+    document.querySelectorAll('.contraindicacion-checkbox').forEach(checkbox => {
+        if (contraindicacionesActuales.includes(checkbox.value)) {
+            checkbox.checked = true;
+        }
+    });
+
+    // Actualizar el campo de visualización
+    document.getElementById('contraindicaciones_display').value = 
+        contraindicacionesActuales.join(', ');
+});
+
+function actualizarContraindicaciones() {
+    const contraindicacionesSeleccionadas = [];
+    document.querySelectorAll('.contraindicacion-checkbox:checked').forEach(checkbox => {
+        contraindicacionesSeleccionadas.push(checkbox.value);
+    });
+    const valor = contraindicacionesSeleccionadas.join(', ');
+    document.getElementById('id_contraindicaciones').value = valor;
+    document.getElementById('contraindicaciones_display').value = valor;
+    bootstrap.Modal.getInstance(document.getElementById('contraindicacionesModal')).hide();
+}
+</script>
+{% endblock %}

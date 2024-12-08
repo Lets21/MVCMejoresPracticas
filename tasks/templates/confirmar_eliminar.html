@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h3>¿Estás seguro de que deseas eliminar este {{ tipo }}?</h3>
+            <p>Esta acción no se puede deshacer.</p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                {% if tipo == 'tratamiento' %}
+                    <a href="{% url 'lista_tratamientos' %}" class="btn btn-secondary">Cancelar</a>
+                {% elif tipo == 'medicamento' %}
+                    <a href="{% url 'lista_medicamentos' %}" class="btn btn-secondary">Cancelar</a>
+                {% else %}
+                    <a href="{% url 'vista_admin' %}" class="btn btn-secondary">Cancelar</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Programar Cita</h2>
+    
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-4">
+        {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-4">
+                <h5>Doctor asignado:</h5>
+                <p class="form-control-static">{{ doctor_info }}</p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label">Fecha de la cita</label>
+                    {{ form.fecha }}
+                    {% if form.fecha.errors %}
+                    <div class="alert alert-danger mt-1">
+                        {{ form.fecha.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Hora de la cita</label>
+                    {{ form.hora }}
+                    <small class="text-muted d-block">Horario disponible: 8:00 AM - 6:00 PM</small>
+                    {% if form.hora.errors %}
+                    <div class="alert alert-danger mt-1">
+                        {{ form.hora.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Motivo de la consulta</label>
+                    {{ form.motivo }}
+                    {% if form.motivo.errors %}
+                    <div class="alert alert-danger mt-1">
+                        {{ form.motivo.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Programar Cita</button>
+                    <a href="{% url 'vista_paciente' %}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

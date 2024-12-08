@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% csrf_token %}
+
+<div class="container mt-4">
+    {% if messages %}
+    <div class="row">
+        <div class="col-md-12">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Bienvenido Dr. {{ request.user.get_full_name }}</h5>
+                    <div class="mt-3">
+                        <h6>Información del Doctor:</h6>
+                        <p><strong>Especialidad:</strong> {{ request.user.doctor.especialidad }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if asignaciones_pendientes %}
+    <div class="alert alert-warning">
+        <h5>¡Atención! Pacientes que requieren creación de tratamiento</h5>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Edad</th>
+                        <th>Condiciones Médicas</th>
+                        <th>Alergias</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asignacion in asignaciones_pendientes %}
+                    <tr>
+                        <td>{{ asignacion.paciente.usuario.get_full_name }}</td>
+                        <td>{{ asignacion.paciente.edad }}</td>
+                        <td>{{ asignacion.paciente.condiciones_medicas }}</td>
+                        <td>{{ asignacion.paciente.alergias }}</td>
+                        <td>
+                            <a href="{% url 'crear_tratamiento_paciente' asignacion.id %}" 
+                               class="btn btn-primary">
+                                Crear Tratamiento
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Tratamientos Asignados</h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Edad</th>
+                        <th>Condiciones Médicas</th>
+                        <th>Alergias</th>
+                        <th>Tratamiento</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asignacion in asignaciones_normales %}
+                    <tr>
+                        <td>{{ asignacion.paciente.usuario.get_full_name }}</td>
+                        <td>{{ asignacion.paciente.edad }}</td>
+                        <td>{{ asignacion.paciente.condiciones_medicas }}</td>
+                        <td>{{ asignacion.paciente.alergias }}</td>
+                        <td>
+                            <strong>{{ asignacion.tratamiento.nombre }}</strong>
+                            <div class="mt-2">
+                                <h6 class="mb-2">Medicamentos:</h6>
+                                <ul class="list-unstyled">
+                                {% for med_asignado in asignacion.get_medicamentos %}
+                                    <li class="mb-2">
+                                        <div class="d-flex align-items-start">
+                                            <div>
+                                                <strong>{{ med_asignado.medicamento.nombre }}</strong>
+                                                <br>
+                                                <small>Dosis: {{ med_asignado.dosis }}</small>
+                                                <br>
+                                                <small>Frecuencia: {{ med_asignado.frecuencia }}</small>
+                                                
+                                                {% if med_asignado.es_sustituto %}
+                                                    <div class="mt-1 ps-3 border-start border-warning">
+                                                        <small class="text-warning">
+                                                            Medicamento original: {{ med_asignado.medicamento_original.nombre }}
+                                                            <br>
+                                                            <em>Sustituido por alergias del paciente</em>
+                                                        </small>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% empty %}
+                                    <li class="text-muted">No hay medicamentos asignados</li>
+                                {% endfor %}
+                                </ul>
+                            </div>
+                        </td>
+                        <td>{{ asignacion.get_estado_display }}</td>
+                        <td>
+                            <select class="form-select form-select-sm estado-tratamiento" 
+                                    data-asignacion-id="{{ asignacion.id }}">
+                                <option value="pendiente" {% if asignacion.estado == 'pendiente' %}selected{% endif %}>
+                                    Pendiente
+                                </option>
+                                <option value="en_progreso" {% if asignacion.estado == 'en_progreso' %}selected{% endif %}>
+                                    En Progreso
+                                </option>
+                                <option value="completado" {% if asignacion.estado == 'completado' %}selected{% endif %}>
+                                    Completado
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No hay pacientes asignados actualmente.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Mis Citas Programadas</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Paciente</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Estado</th>
+                                <th>Motivo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cita in citas %}
+                            <tr>
+                                <td>{{ cita.paciente.usuario.get_full_name }}</td>
+                                <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+                                <td>{{ cita.hora|time:"h:i A" }}</td>
+                                <td>{{ cita.get_estado_display }}</td>
+                                <td>{{ cita.motivo }}</td>
+                                <td>
+                                    <select class="form-select form-select-sm estado-cita" 
+                                            data-cita-id="{{ cita.id }}">
+                                        <option value="pendiente" {% if cita.estado == 'pendiente' %}selected{% endif %}>
+                                            Pendiente
+                                        </option>
+                                        <option value="confirmada" {% if cita.estado == 'confirmada' %}selected{% endif %}>
+                                            Confirmada
+                                        </option>
+                                        <option value="completada" {% if cita.estado == 'completada' %}selected{% endif %}>
+                                            Completada
+                                        </option>
+                                        <option value="cancelada" {% if cita.estado == 'cancelada' %}selected{% endif %}>
+                                            Cancelada
+                                        </option>
+                                    </select>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No hay citas programadas.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    document.querySelectorAll('.estado-tratamiento').forEach(select => {
+        select.addEventListener('change', function() {
+            const asignacionId = this.dataset.asignacionId;
+            const nuevoEstado = this.value;
+            
+            fetch(`/actualizar-estado-tratamiento/${asignacionId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    estado: nuevoEstado
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: 'Estado actualizado correctamente',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.error || 'No se pudo actualizar el estado',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Hubo un problema al actualizar el estado',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
+        });
+    });
+    
+    document.querySelectorAll('.estado-cita').forEach(select => {
+        select.addEventListener('change', function() {
+            const citaId = this.dataset.citaId;
+            const nuevoEstado = this.value;
+            
+            fetch(`/actualizar-estado-cita/${citaId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    estado: nuevoEstado
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: 'Estado de la cita actualizado correctamente',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.error || 'No se pudo actualizar el estado de la cita',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Hubo un problema al actualizar el estado',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

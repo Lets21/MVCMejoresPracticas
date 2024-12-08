@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Crear Nuevo Doctor</h2>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    {% if field.name != 'especialidad' %}
+                        <div class="form-group mb-3">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="alert alert-danger">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Campo de Especialidad -->
+                <div class="form-group mb-3">
+                    <label>Especialidad</label>
+                    <div class="input-group">
+                        {{ form.especialidad }}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#especialidadModal">
+                            Seleccionar Especialidad
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Crear Doctor</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Especialidades -->
+<div class="modal fade" id="especialidadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Especialidad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    {% for especialidad in especialidades %}
+                    <button type="button" 
+                            class="list-group-item list-group-item-action especialidad-item"
+                            data-especialidad="{{ especialidad }}">
+                        {{ especialidad }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const especialidadInput = document.getElementById('id_especialidad');
+    const especialidadItems = document.querySelectorAll('.especialidad-item');
+    
+    especialidadItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const especialidad = this.dataset.especialidad;
+            especialidadInput.value = especialidad;
+            bootstrap.Modal.getInstance(document.getElementById('especialidadModal')).hide();
+        });
+        
+        // Marcar la especialidad seleccionada actualmente
+        if (item.dataset.especialidad === especialidadInput.value) {
+            item.classList.add('active');
+        }
+    });
+});
+</script>
+{% endblock %} 

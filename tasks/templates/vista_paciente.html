@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if messages %}
+    <div class="row">
+        <div class="col-md-12">
+            {% for message in messages %}
+                {% if 'Tratamiento' not in message.message and 'Error al guardar' not in message.message %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <h2>Panel del Paciente</h2>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Bienvenido {{ request.user.username }}</h5>
+                    <div class="mt-3">
+                        <h6>Información del Paciente:</h6>
+                        <p><strong>Edad:</strong> {{ request.user.paciente.edad }}</p>
+                        <p><strong>Condiciones Médicas:</strong> {{ request.user.paciente.condiciones_medicas }}</p>
+                        <p><strong>Alergias:</strong> {{ request.user.paciente.alergias }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Mis Citas</h5>
+                    
+                    <!-- Agregamos el botón para programar citas -->
+                    {% if request.user.paciente.asignaciontratamiento_set.all %}
+                        <div class="mb-3">
+                            <div class="dropdown">
+                                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" 
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    Programar Nueva Cita
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    {% for asignacion in request.user.paciente.asignaciontratamiento_set.all %}
+                                        {% if asignacion.estado != 'completado' %}
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'programar_cita' asignacion.doctor.id %}">
+                                                    Con Dr. {{ asignacion.doctor.usuario.get_full_name }} 
+                                                    ({{ asignacion.doctor.especialidad }})
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="alert alert-info">
+                            Para programar citas, primero debes tener un tratamiento asignado con un doctor.
+                        </p>
+                    {% endif %}
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Doctor</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Estado</th>
+                                <th>Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cita in citas %}
+                            <tr>
+                                <td>Dr. {{ cita.doctor.usuario.get_full_name }}</td>
+                                <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+                                <td>{{ cita.hora|time:"H:i" }}</td>
+                                <td>
+                                    <span class="badge {% if cita.estado == 'pendiente' %}bg-warning{% elif cita.estado == 'confirmada' %}bg-success{% elif cita.estado == 'completada' %}bg-info{% else %}bg-danger{% endif %}">
+                                        {{ cita.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>{{ cita.motivo }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">No tienes citas programadas.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Mis Tratamientos Asignados</h5>
+                    {% if not asignaciones_activas %}
+                        <a href="{% url 'asignar_tratamiento' request.user.paciente.id %}" class="btn btn-primary mb-3">
+                            Solicitar Asignación de Tratamiento
+                        </a>
+                    {% else %}
+                        <div class="alert alert-warning mb-3">
+                            Ya tienes un tratamiento activo. Debes completar tu tratamiento actual antes de solicitar uno nuevo.
+                        </div>
+                    {% endif %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tratamiento</th>
+                                <th>Doctor Asignado</th>
+                                <th>Estado</th>
+                                <th>Fecha Asignación</th>
+                                <th>Medicamentos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asignacion in asignaciones %}
+                            <tr>
+                                <td>{{ asignacion.tratamiento.nombre }}</td>
+                                <td>Dr. {{ asignacion.doctor.usuario.get_full_name }}</td>
+                                <td>
+                                    <span class="badge {% if asignacion.estado == 'pendiente' %}bg-warning{% elif asignacion.estado == 'en_progreso' %}bg-primary{% else %}bg-success{% endif %}">
+                                        {{ asignacion.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>{{ asignacion.fecha_asignacion|date:"d/m/Y" }}</td>
+                                <td>
+                                    <h6 class="mb-2">Medicamentos:</h6>
+                                    <ul class="list-unstyled">
+                                    {% for med_asignado in asignacion.get_medicamentos %}
+                                        <li class="mb-2">
+                                            <div class="d-flex align-items-start">
+                                                <div>
+                                                    <strong>{{ med_asignado.medicamento.nombre }}</strong>
+                                                    <br>
+                                                    <small>Dosis: {{ med_asignado.dosis }}</small>
+                                                    <br>
+                                                    <small>Frecuencia: {{ med_asignado.frecuencia }}</small>
+                                                    
+                                                    {% if med_asignado.es_sustituto %}
+                                                        <div class="mt-1 ps-3 border-start border-warning">
+                                                            <small class="text-warning">
+                                                                Medicamento original: {{ med_asignado.medicamento_original.nombre }}
+                                                                <br>
+                                                                <em>Sustituido debido a tus alergias</em>
+                                                            </small>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </li>
+                                    {% empty %}
+                                        <li class="text-muted">No hay medicamentos asignados</li>
+                                    {% endfor %}
+                                    </ul>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

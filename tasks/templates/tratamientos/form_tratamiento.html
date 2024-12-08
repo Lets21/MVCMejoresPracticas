@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if tratamiento %}Editar{% else %}Crear{% endif %} Tratamiento</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <!-- Campos normales -->
+                <div class="form-group mb-3">
+                    <label>Nombre</label>
+                    {{ form.nombre }}
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Descripción</label>
+                    {{ form.descripcion }}
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Duración</label>
+                    {{ form.duracion }}
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Costo</label>
+                    {{ form.costo }}
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Especialidad Requerida</label>
+                    {{ form.especialidad_requerida }}
+                </div>
+
+                <!-- Campo de Condiciones Tratadas con botón modal -->
+                <div class="form-group mb-3">
+                    <label>Condiciones Tratadas</label>
+                    <div class="input-group">
+                        {{ form.condiciones_tratadas }}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#condicionesModal">
+                            Seleccionar Condiciones
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Edad Mínima</label>
+                    {{ form.edad_minima }}
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Edad Máxima</label>
+                    {{ form.edad_maxima }}
+                </div>
+
+                <!-- Sección de Medicamentos -->
+                <h4 class="mt-4">Medicamentos</h4>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Seleccionar</th>
+                                <th>Medicamento</th>
+                                <th>Dosis</th>
+                                <th>Frecuencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for medicamento in medicamentos %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="medicamentos" value="{{ medicamento.id }}"
+                                        {% if medicamento.id in medicamentos_asociados %}checked{% endif %}>
+                                </td>
+                                <td>{{ medicamento.nombre }}</td>
+                                <td>
+                                    <input type="text" name="dosis_{{ medicamento.id }}" 
+                                        class="form-control" placeholder="Ej: 100mg"
+                                        value="{{ medicamentos_asociados|get_item:medicamento.id|get_item:'dosis'|default:'' }}">
+                                </td>
+                                <td>
+                                    <input type="text" name="frecuencia_{{ medicamento.id }}" 
+                                        class="form-control" placeholder="Ej: 1 vez al día"
+                                        value="{{ medicamentos_asociados|get_item:medicamento.id|get_item:'frecuencia'|default:'' }}">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    {% if tratamiento %}Guardar Cambios{% else %}Crear Tratamiento{% endif %}
+                </button>
+                <a href="{% url 'lista_tratamientos' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Condiciones -->
+<div class="modal fade" id="condicionesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Condiciones Tratadas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    {% for condicion in condiciones_tratables %}
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input condicion-checkbox" type="checkbox" value="{{ condicion }}">
+                            <label class="form-check-label">{{ condicion }}</label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="actualizarCondiciones()">Guardar Selección</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function actualizarCondiciones() {
+    const condicionesSeleccionadas = [];
+    document.querySelectorAll('.condicion-checkbox:checked').forEach(checkbox => {
+        condicionesSeleccionadas.push(checkbox.value);
+    });
+    document.getElementById('id_condiciones_tratadas').value = condicionesSeleccionadas.join(', ');
+    bootstrap.Modal.getInstance(document.getElementById('condicionesModal')).hide();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const condicionesActuales = document.getElementById('id_condiciones_tratadas').value.split(',').map(c => c.trim());
+    
+    document.querySelectorAll('.condicion-checkbox').forEach(checkbox => {
+        if (condicionesActuales.includes(checkbox.value)) {
+            checkbox.checked = true;
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Listado de Medicamentos</h2>
+        <a href="{% url 'crear_medicamento' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Nuevo Medicamento
+        </a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Componente Principal</th>
+                <th>Contraindicaciones</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for medicamento in medicamentos %}
+            <tr>
+                <td>{{ medicamento.nombre }}</td>
+                <td>{{ medicamento.componente_principal }}</td>
+                <td>{{ medicamento.contraindicaciones }}</td>
+                <td>
+                    <a href="{% url 'editar_medicamento' medicamento.id %}" class="btn btn-sm btn-primary">Editar</a>
+                    <a href="{% url 'eliminar_medicamento' medicamento.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No hay medicamentos disponibles.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

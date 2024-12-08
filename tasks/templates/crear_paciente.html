@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Crear Nuevo Paciente</h2>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    {% if field.name != 'condiciones_medicas' and field.name != 'alergias' %}
+                        <div class="form-group mb-3">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="alert alert-danger">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Campo de Condiciones Médicas -->
+                <div class="form-group mb-3">
+                    <label>Condiciones Médicas</label>
+                    <div class="input-group">
+                        {{ form.condiciones_medicas }}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#condicionesModal">
+                            Seleccionar Condiciones
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo de Alergias -->
+                <div class="form-group mb-3">
+                    <label>Alergias</label>
+                    <div class="input-group">
+                        {{ form.alergias }}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#alergiasModal">
+                            Seleccionar Alergias
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Crear Paciente</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Condiciones Médicas -->
+<div class="modal fade" id="condicionesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Condiciones Médicas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    {% for condicion in condiciones_medicas %}
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input condicion-checkbox" type="checkbox" value="{{ condicion }}">
+                            <label class="form-check-label">{{ condicion }}</label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="actualizarCondiciones()">Guardar Selección</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Alergias -->
+<div class="modal fade" id="alergiasModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Alergias</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    {% for alergia in alergias_comunes %}
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input alergia-checkbox" type="checkbox" value="{{ alergia }}">
+                            <label class="form-check-label">{{ alergia }}</label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="actualizarAlergias()">Guardar Selección</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function actualizarCondiciones() {
+    const condicionesSeleccionadas = [];
+    document.querySelectorAll('.condicion-checkbox:checked').forEach(checkbox => {
+        condicionesSeleccionadas.push(checkbox.value);
+    });
+    document.getElementById('id_condiciones_medicas').value = condicionesSeleccionadas.join(', ');
+    bootstrap.Modal.getInstance(document.getElementById('condicionesModal')).hide();
+}
+
+function actualizarAlergias() {
+    const alergiasSeleccionadas = [];
+    document.querySelectorAll('.alergia-checkbox:checked').forEach(checkbox => {
+        alergiasSeleccionadas.push(checkbox.value);
+    });
+    document.getElementById('id_alergias').value = alergiasSeleccionadas.join(', ');
+    bootstrap.Modal.getInstance(document.getElementById('alergiasModal')).hide();
+}
+
+// Marcar checkboxes basados en valores existentes
+document.addEventListener('DOMContentLoaded', function() {
+    const condicionesActuales = document.getElementById('id_condiciones_medicas').value.split(',').map(c => c.trim());
+    const alergiasActuales = document.getElementById('id_alergias').value.split(',').map(a => a.trim());
+    
+    document.querySelectorAll('.condicion-checkbox').forEach(checkbox => {
+        if (condicionesActuales.includes(checkbox.value)) {
+            checkbox.checked = true;
+        }
+    });
+    
+    document.querySelectorAll('.alergia-checkbox').forEach(checkbox => {
+        if (alergiasActuales.includes(checkbox.value)) {
+            checkbox.checked = true;
+        }
+    });
+});
+</script>
+{% endblock %} 

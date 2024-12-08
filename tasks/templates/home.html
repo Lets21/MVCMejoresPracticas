@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="display-4">Clínica Médica Especializada</h1>
+                <p class="lead">Cuidando tu salud con profesionalismo y dedicación</p>
+                {% if not user.is_authenticated %}
+                    <div class="mt-4">
+                        <a href="{% url 'signin' %}" class="btn btn-outline-light btn-lg">Iniciar Sesión</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <img src="https://hcsa.ec/wp-content/uploads/2024/01/centro-de-diagnostico-por-imagen-en-loja-en-el-hospital-clinica-san-agustin-3.jpg" class="img-fluid rounded shadow" alt="Clínica">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="services-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Nuestros Servicios</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-heart-pulse fs-1 text-primary mb-3"></i>
+                        <h5 class="card-title">Cardiología</h5>
+                        <p class="card-text">Atención especializada para el cuidado de tu corazón con los mejores especialistas.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-lungs fs-1 text-primary mb-3"></i>
+                        <h5 class="card-title">Neumología</h5>
+                        <p class="card-text">Diagnóstico y tratamiento de enfermedades respiratorias con tecnología avanzada.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-brain fs-1 text-primary mb-3"></i>
+                        <h5 class="card-title">Neurología</h5>
+                        <p class="card-text">Cuidado integral del sistema nervioso con profesionales altamente calificados.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="features-section py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">¿Por qué elegirnos?</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <i class="fas fa-user-doctor fs-1 text-primary mb-3"></i>
+                    <h5>Médicos Expertos</h5>
+                    <p>Profesionales con amplia experiencia y especialización.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <i class="fas fa-clock fs-1 text-primary mb-3"></i>
+                    <h5>Atención 24/7</h5>
+                    <p>Disponibles cuando nos necesites.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <i class="fas fa-hospital fs-1 text-primary mb-3"></i>
+                    <h5>Instalaciones Modernas</h5>
+                    <p>Equipamiento de última generación.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <i class="fas fa-hand-holding-medical fs-1 text-primary mb-3"></i>
+                    <h5>Atención Personalizada</h5>
+                    <p>Tratamientos adaptados a cada paciente.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
