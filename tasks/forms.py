@@ -19,6 +19,8 @@ class TaskForm(ModelForm):
         fields = ['title', 'description', 'important']
 
 class PacienteRegistroForm(UserCreationForm):
+    first_name = forms.CharField(max_length=30, required=True, help_text='Nombre')
+    last_name = forms.CharField(max_length=30, required=True, help_text='Apellido')
     edad = forms.IntegerField(required=True)
     condiciones_medicas = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 3}),
@@ -31,14 +33,16 @@ class PacienteRegistroForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ['username', 'password1', 'password2']
+        fields = ['username', 'first_name', 'last_name', 'password1', 'password2']
 
 class DoctorRegistroForm(UserCreationForm):
+    first_name = forms.CharField(max_length=30, required=True, help_text='Nombre')
+    last_name = forms.CharField(max_length=30, required=True, help_text='Apellido')
     especialidad = forms.CharField(max_length=100)
 
     class Meta:
         model = User
-        fields = ['username', 'password1', 'password2', 'especialidad']
+        fields = ['username', 'first_name', 'last_name', 'password1', 'password2', 'especialidad']
 
 class MedicamentoTratamientoForm(forms.Form):
     medicamento = forms.ModelChoiceField(
