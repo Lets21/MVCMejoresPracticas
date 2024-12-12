@@ -135,5 +135,5 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.m
 ## 📧 Contacto
 
 Para preguntas y soporte, por favor contacta a:
-- Email: [tu@email.com](mailto:tu@email.com)
-- GitHub: [tu-usuario](https://github.com/tu-usuario)
+- Email: [leito.t210403@oulook.es)
+- GitHub: [Lets21](https://github.com/Lets21)
