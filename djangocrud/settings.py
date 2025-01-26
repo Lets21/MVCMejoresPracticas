@@ -78,14 +78,16 @@ WSGI_APPLICATION = 'djangocrud.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://postgres:postgres@localhost/postgres',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mvcdjango',  # Nombre de la base de datos
+        'USER': 'mvcdjango_user',  # Nombre de usuario
+        'PASSWORD': 'wHzNlnFrQvZhLL1N4ZPqEs68mQlqa94z',  # Contraseña
+        'HOST': 'dpg-cubat89opnds73ei4rhg-a',  # Nombre del host
+        'PORT': '5432',  # Puerto
+    }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
