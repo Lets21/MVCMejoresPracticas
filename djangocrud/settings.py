@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = []
 
@@ -78,16 +78,14 @@ WSGI_APPLICATION = 'djangocrud.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mvcdjango',  # Nombre de la base de datos
-        'USER': 'mvcdjango_user',  # Nombre de usuario
-        'PASSWORD': 'wHzNlnFrQvZhLL1N4ZPqEs68mQlqa94z',  # Contraseña
-        'HOST': 'dpg-cubat89opnds73ei4rhg-a',  # Nombre del host
-        'PORT': '5432',  # Puerto
-    }
+    'default': dj_database_url.config(
+        default='postgresql://postgres:postgres@localhost/postgres',
+        conn_max_age=600
+    )
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -123,8 +121,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = 'static/'
 
 if not DEBUG:  # Tell Django to copy statics to the `staticfiles` directory in your application directory on Render.
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
