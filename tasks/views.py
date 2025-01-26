@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-from .models import Task, Paciente, Doctor, TipoUsuario, Tratamiento, AsignacionTratamiento, TratamientoMedicamento, MedicamentoSustituto, AsignacionTratamientoMedicamento, Medicamento, Cita
+from .models import Task, Paciente, Doctor, TipoUsuario, Tratamiento, AsignacionTratamiento, TratamientoMedicamento, MedicamentoSustituto, AsignacionTratamientoMedicamento, Medicamento, Cita, AsignadorConSustitutos, AsignadorOriginal
 from django.db.models import Q
 from django.contrib import messages
 from .decorators import tipo_usuario_requerido
@@ -682,7 +682,14 @@ def asignar_tratamiento_automatico(request, paciente_id):
     )
     
     if tratamiento:
-        asignacion.asignar_medicamentos()
+        # Elegir estrategia de asignación
+        if paciente.alergias:
+            estrategia = AsignadorConSustitutos()
+        else:
+            estrategia = AsignadorOriginal()
+        
+        # Asignar medicamentos considerando alergias
+        asignacion.asignar_medicamentos(estrategia)
         messages.success(request, f"Se te ha asignado el tratamiento '{tratamiento.nombre}' con el Dr. {doctor.usuario.get_full_name()}")
     else:
         messages.success(request, f"Se ha asignado tu caso al Dr. {doctor.usuario.get_full_name()}. El doctor creará un tratamiento personalizado para ti.")
@@ -845,8 +852,13 @@ def crear_tratamiento_paciente(request, asignacion_id):
             print(f"Asignando medicamentos para paciente: {asignacion.paciente}")  # Debug
             print(f"Alergias del paciente: {asignacion.paciente.alergias}")  # Debug
             
-            # Llamar al método de la clase para asignar medicamentos
-            asignacion.asignar_medicamentos()
+            # Elegir estrategia de asignación
+            if asignacion.paciente.alergias:
+                estrategia = AsignadorConSustitutos()
+            else:
+                estrategia = AsignadorOriginal()
+            
+            asignacion.asignar_medicamentos(estrategia)
             
             # Verificar que se crearon las asignaciones
             medicamentos_asignados = asignacion.get_medicamentos()
@@ -1085,8 +1097,14 @@ def asignar_tratamiento(request, paciente_id):
                 tratamiento=tratamiento
             )
             
+            # Elegir estrategia de asignación
+            if paciente.alergias:
+                estrategia = AsignadorConSustitutos()
+            else:
+                estrategia = AsignadorOriginal()
+            
             # Asignar medicamentos considerando alergias
-            asignacion.asignar_medicamentos()
+            asignacion.asignar_medicamentos(estrategia)
             
             messages.success(request, 'Tratamiento asignado exitosamente')
             return redirect('vista_admin')

@@ -71,6 +71,49 @@ class Tratamiento(models.Model):
     def __str__(self):
         return self.nombre
 
+class MedicamentoAsignador:
+    def asignar_medicamentos(self, asignacion_tratamiento):
+        raise NotImplementedError("Este método debe ser implementado por subclases.")
+
+class AsignadorOriginal(MedicamentoAsignador):
+    def asignar_medicamentos(self, asignacion_tratamiento):
+        # Lógica para asignar medicamentos originales
+        for med_tratamiento in asignacion_tratamiento.tratamiento.tratamientomedicamento_set.all():
+            AsignacionTratamientoMedicamento.objects.create(
+                asignacion_tratamiento=asignacion_tratamiento,
+                medicamento=med_tratamiento.medicamento,
+                dosis=med_tratamiento.dosis,
+                frecuencia=med_tratamiento.frecuencia,
+                es_sustituto=False
+            )
+
+class AsignadorConSustitutos(MedicamentoAsignador):
+    def asignar_medicamentos(self, asignacion_tratamiento):
+        # Lógica para asignar medicamentos con sustitutos
+        alergias_paciente = set(map(str.strip, asignacion_tratamiento.paciente.alergias.lower().split(',')))
+        for med_tratamiento in asignacion_tratamiento.tratamiento.tratamientomedicamento_set.all():
+            medicamento = med_tratamiento.medicamento
+            contraindicaciones = set(map(str.strip, medicamento.contraindicaciones.lower().split(',')))
+            if alergias_paciente.intersection(contraindicaciones):
+                sustituto = MedicamentoSustituto.objects.filter(medicamento_original=medicamento).first()
+                if sustituto:
+                    AsignacionTratamientoMedicamento.objects.create(
+                        asignacion_tratamiento=asignacion_tratamiento,
+                        medicamento=sustituto.medicamento_sustituto,
+                        medicamento_original=medicamento,
+                        dosis=med_tratamiento.dosis,
+                        frecuencia=med_tratamiento.frecuencia,
+                        es_sustituto=True
+                    )
+            else:
+                AsignacionTratamientoMedicamento.objects.create(
+                    asignacion_tratamiento=asignacion_tratamiento,
+                    medicamento=medicamento,
+                    dosis=med_tratamiento.dosis,
+                    frecuencia=med_tratamiento.frecuencia,
+                    es_sustituto=False
+                )
+
 class AsignacionTratamiento(models.Model):
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
@@ -91,44 +134,8 @@ class AsignacionTratamiento(models.Model):
             'medicamento_original'
         )
 
-    def asignar_medicamentos(self):
-        # Eliminar asignaciones previas
-        AsignacionTratamientoMedicamento.objects.filter(asignacion_tratamiento=self).delete()
-        
-        # Obtener las alergias del paciente
-        alergias_paciente = set(map(str.strip, self.paciente.alergias.lower().split(',')))
-        
-        for med_tratamiento in self.tratamiento.tratamientomedicamento_set.all():
-            medicamento = med_tratamiento.medicamento
-            contraindicaciones = set(map(str.strip, medicamento.contraindicaciones.lower().split(',')))
-            
-            # Verificar si hay conflicto con alergias
-            if alergias_paciente.intersection(contraindicaciones):
-                # Buscar sustituto
-                sustituto = MedicamentoSustituto.objects.filter(
-                    medicamento_original=medicamento
-                ).first()
-                
-                if sustituto:
-                    # Crear asignación con medicamento sustituto
-                    AsignacionTratamientoMedicamento.objects.create(
-                        asignacion_tratamiento=self,
-                        medicamento=sustituto.medicamento_sustituto,
-                        medicamento_original=medicamento,
-                        dosis=med_tratamiento.dosis,
-                        frecuencia=med_tratamiento.frecuencia,
-                        es_sustituto=True
-                    )
-                    continue  # Pasar al siguiente medicamento
-            
-            # Si no hay alergia o no hay sustituto, asignar el medicamento original
-            AsignacionTratamientoMedicamento.objects.create(
-                asignacion_tratamiento=self,
-                medicamento=medicamento,
-                dosis=med_tratamiento.dosis,
-                frecuencia=med_tratamiento.frecuencia,
-                es_sustituto=False
-            )
+    def asignar_medicamentos(self, estrategia: MedicamentoAsignador):
+        estrategia.asignar_medicamentos(self)
 
     def __str__(self):
         return f"{self.paciente} - {self.tratamiento}"
